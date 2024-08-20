@@ -1,9 +1,17 @@
 package guilhermea23.nlw_journey.planner.trip;
 
-import guilhermea23.nlw_journey.planner.activities.ActivityRequestPayload;
-import guilhermea23.nlw_journey.planner.activities.ActivityResponse;
-import guilhermea23.nlw_journey.planner.activities.ActivityService;
-import guilhermea23.nlw_journey.planner.participants.*;
+import guilhermea23.nlw_journey.planner.activity.ActivityData;
+import guilhermea23.nlw_journey.planner.activity.ActivityRequestPayload;
+import guilhermea23.nlw_journey.planner.activity.ActivityResponse;
+import guilhermea23.nlw_journey.planner.activity.ActivityService;
+import guilhermea23.nlw_journey.planner.links.LinkData;
+import guilhermea23.nlw_journey.planner.links.LinkRequestPayload;
+import guilhermea23.nlw_journey.planner.links.LinkResponse;
+import guilhermea23.nlw_journey.planner.links.LinkService;
+import guilhermea23.nlw_journey.planner.participants.ParticipantCreateResponse;
+import guilhermea23.nlw_journey.planner.participants.ParticipantData;
+import guilhermea23.nlw_journey.planner.participants.ParticipantRequestPayload;
+import guilhermea23.nlw_journey.planner.participants.ParticipantsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +33,12 @@ public class TripController {
     private ActivityService activityService;
 
     @Autowired
+    private LinkService linkService;
+
+    @Autowired
     private TripRepository repository;
+
+    // Trips
 
     @PostMapping
     public ResponseEntity<TripCreateResponse> createTrip(@RequestBody TripRequestPayload payload){
@@ -74,6 +87,8 @@ public class TripController {
         return ResponseEntity.notFound().build();
     }
 
+    // Participants
+
     @PostMapping("/{id}/invite")
     public ResponseEntity<ParticipantCreateResponse> inviteParticipant(@PathVariable UUID id, @RequestBody ParticipantRequestPayload payload){
         Optional<Trip> trip = this.repository.findById(id);
@@ -97,7 +112,9 @@ public class TripController {
         return ResponseEntity.ok(participantList);
     }
 
-    @PostMapping("/{id}/activities")
+    // Activities
+
+    @PostMapping("/{id}/activity")
     public ResponseEntity<ActivityResponse> registerActivity(@PathVariable UUID id, @RequestBody ActivityRequestPayload payload){
         Optional<Trip> trip = this.repository.findById(id);
 
@@ -108,4 +125,33 @@ public class TripController {
         }
         return ResponseEntity.notFound().build();
     }
+
+    @GetMapping("/{id}/activity")
+    public ResponseEntity<List<ActivityData>> getAllActivities(@PathVariable UUID id){
+        List<ActivityData> activityDataList = this.activityService.getAllActivitiesFromId(id);
+
+        return ResponseEntity.ok(activityDataList);
+    }
+
+    // Links
+
+    @PostMapping("/{id}/link")
+    public ResponseEntity<LinkResponse> registerLink(@PathVariable UUID id, @RequestBody LinkRequestPayload payload){
+        Optional<Trip> trip = this.repository.findById(id);
+
+        if (trip.isPresent()){
+            Trip rawTrip = trip.get();
+            LinkResponse linkResponse = this.linkService.registerLink(payload, rawTrip);
+            return ResponseEntity.ok(linkResponse);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/{id}/link")
+    public ResponseEntity<List<LinkData>> getAllLinks(@PathVariable UUID id){
+        List<LinkData> linkData = this.linkService.getAllLinksFromId(id);
+
+        return ResponseEntity.ok(linkData);
+    }
+
 }

@@ -1,4 +1,4 @@
-package guilhermea23.nlw_journey.planner.activities;
+package guilhermea23.nlw_journey.planner.activity;
 
 import java.util.UUID;
 
